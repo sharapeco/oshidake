@@ -1,18 +1,25 @@
 const qs = (query, p) => (p || document).querySelector(query);
 const qsa = (query, p) => [].slice.call((p || document).querySelectorAll(query));
 
-const main = () => {
-	const channelName = (el) => el.getAttribute('title')
+let stylesAdded = false
+const addStyles = () => {
+	if (stylesAdded) return
+	stylesAdded = true
 
-	// スタイルを追加
 	const stylesheet = document.createElement('style')
 	document.body.appendChild(stylesheet)
 	const s = stylesheet.sheet
-	s.insertRule('#contents { display: flex; }')
-	s.insertRule('ytd-rich-grid-row { display: contents; }')
-	s.insertRule('ytd-rich-grid-row > #contents.ytd-rich-grid-row { display: contents; }')
-	s.insertRule('#contents ytd-rich-item-renderer { display: none; }')
-	s.insertRule('#contents ytd-rich-item-renderer.subscribed { display: block; }')
+	s.insertRule('#contents.ytd-rich-grid-renderer { display: flex; }')
+	s.insertRule('#contents.ytd-rich-grid-renderer ytd-rich-grid-row { display: contents; }')
+	s.insertRule('#contents.ytd-rich-grid-renderer ytd-rich-grid-row > #contents.ytd-rich-grid-row { display: contents; }')
+	s.insertRule('#contents.ytd-rich-grid-renderer ytd-rich-item-renderer { display: none; }')
+	s.insertRule('#contents.ytd-rich-grid-renderer ytd-rich-item-renderer.subscribed { display: block; }')
+}
+
+let container = null
+let observer = null
+const main = () => {
+	const channelName = (el) => el.getAttribute('title')
 
 	// すべての登録チャンネルを表示
 	const expander = qsa('#expander-item')[1]
@@ -31,23 +38,40 @@ const main = () => {
 		})
 	}
 
-	const observer = new MutationObserver(run)
-	observer.observe(qs('#contents'), {
+	observer = new MutationObserver(run)
+	observer.observe(container, {
 		childList: true
 	})
 
 	run()
 }
 
+let path = null
 const loader = () => {
-	if (location.pathname !== '/') {
+	if (path === location.pathname) {
 		return
 	}
-	if (!qs('#contents') || !qs('#items #endpoint[href^="/c/"], #items #endpoint[href^="/@"]')) {
-		setTimeout(loader, 100)
+
+	if (observer) {
+		observer.disconnect()
+		observer = null
+	}
+
+	if (location.pathname !== '/') {
+		path = location.pathname
+		return
+	}
+
+	container = qs('#contents.ytd-rich-grid-renderer')
+	if (!container) {
+		return
+	}
+	if (!qs('#items #endpoint[href^="/c/"], #items #endpoint[href^="/@"]')) {
 		return
 	}
 	main()
+	path = location.pathname
 }
 
-loader()
+addStyles()
+setInterval(loader, 100)

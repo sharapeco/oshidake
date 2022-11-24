@@ -1,11 +1,11 @@
 {
 	"name": "推しだけ",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"manifest_version": 3,
 	"description": "YouTubeのホーム画面で登録チャンネル以外表示しないようにします",
 	"content_scripts": [
 		{
-			"matches": ["https://www.youtube.com/"],
+			"matches": ["https://www.youtube.com/*"],
 			"js": ["content.js"]
 		}
 	],
