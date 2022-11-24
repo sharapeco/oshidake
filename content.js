@@ -40,6 +40,9 @@ const main = () => {
 }
 
 const loader = () => {
+	if (location.pathname !== '/') {
+		return
+	}
 	if (!qs('#contents') || !qs('#items #endpoint[href^="/c/"], #items #endpoint[href^="/@"]')) {
 		setTimeout(loader, 100)
 		return
